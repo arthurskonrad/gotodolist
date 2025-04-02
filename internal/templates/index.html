@@ -1,0 +1,98 @@
+{{ define "content" }}
+<div id="todo-section" class="space-y-6">
+  <!-- Formulário -->
+  <form
+    hx-post="/add"
+    hx-target="#todo-section"
+    hx-swap="outerHTML"
+    onsubmit="return false;"
+    class="flex gap-2"
+  >
+    <input
+      type="text"
+      name="task"
+      placeholder="Nova tarefa"
+      required
+      class="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-400"
+    />
+    <button
+      type="submit"
+      class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+    >
+      Adicionar
+    </button>
+  </form>
+
+  <!-- Tarefas pendentes -->
+  <div>
+    <h2 class="text-lg font-semibold mb-2">🔄 Pendentes</h2>
+    <ul class="space-y-2">
+      {{ range .Pending }}
+      <li
+        class="flex justify-between items-center bg-gray-100 px-4 py-2 rounded"
+      >
+        <span>{{ .Text }}</span>
+        <div class="flex gap-2">
+          <button
+            hx-post="/toggle"
+            hx-vals='{"id": "{{ .ID }}"}'
+            hx-target="#todo-section"
+            hx-swap="outerHTML"
+            class="text-sm bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
+          >
+            Concluir
+          </button>
+          <button
+            hx-post="/delete"
+            hx-vals='{"id": "{{ .ID }}"}'
+            hx-target="#todo-section"
+            hx-swap="outerHTML"
+            class="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+          >
+            Remover
+          </button>
+        </div>
+      </li>
+      {{ else }}
+      <li class="text-gray-400">Nenhuma tarefa pendente.</li>
+      {{ end }}
+    </ul>
+  </div>
+
+  <!-- Tarefas concluídas -->
+  <div>
+    <h2 class="text-lg font-semibold mt-6 mb-2">✅ Concluídas</h2>
+    <ul class="space-y-2">
+      {{ range .Completed }}
+      <li
+        class="flex justify-between items-center bg-gray-200 px-4 py-2 rounded"
+      >
+        <span class="line-through text-gray-500">{{ .Text }}</span>
+        <div class="flex gap-2">
+          <button
+            hx-post="/toggle"
+            hx-vals='{"id": "{{ .ID }}"}'
+            hx-target="#todo-section"
+            hx-swap="outerHTML"
+            class="text-sm bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+          >
+            Desfazer
+          </button>
+          <button
+            hx-post="/delete"
+            hx-vals='{"id": "{{ .ID }}"}'
+            hx-target="#todo-section"
+            hx-swap="outerHTML"
+            class="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+          >
+            Remover
+          </button>
+        </div>
+      </li>
+      {{ else }}
+      <li class="text-gray-400">Nenhuma tarefa concluída.</li>
+      {{ end }}
+    </ul>
+  </div>
+</div>
+{{ end }}

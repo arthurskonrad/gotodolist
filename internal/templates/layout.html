@@ -1,0 +1,34 @@
+{{ define "layout" }}
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>To-do List</title>
+    <script
+      src="https://unpkg.com/htmx.org@2.0.4"
+      integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gray-100 text-gray-900 flex justify-center items-start min-h-screen p-8"
+  >
+    <div class="bg-white shadow-md rounded-lg w-full max-w-md p-6 space-y-6">
+      <h1 class="text-2xl font-bold text-center">📝 Minha To-do List</h1>
+      {{ template "content" . }}
+    </div>
+
+    <script>
+      document.body.addEventListener("htmx:afterOnLoad", function(evt) {
+        console.log("✅ HTMX response received");
+      });
+
+      document.body.addEventListener("htmx:responseError", function(evt) {
+        console.error("❌ Erro na resposta HTMX:", evt.detail);
+      });
+    </script>
+  </body>
+</html>
+{{ end }}
