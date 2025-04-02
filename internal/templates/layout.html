@@ -5,12 +5,35 @@
     <meta charset="UTF-8" />
     <title>To-do List</title>
     <script
-      src="https://unpkg.com/htmx.org@2.0.4"
+      src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"
       integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
       crossorigin="anonymous"
       defer
     ></script>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .animate-fade-in {
+        animation: fade-in 0.3s ease-out forwards;
+      }
+
+      .fade-out {
+        opacity: 0 !important;
+        transform: scale(0.95) !important;
+        transition: all 0.3s ease-in-out;
+      }
+    </style>
   </head>
   <body
     class="bg-gray-100 text-gray-900 flex justify-center items-start min-h-screen p-8"
@@ -19,16 +42,6 @@
       <h1 class="text-2xl font-bold text-center">📝 Minha To-do List</h1>
       {{ template "content" . }}
     </div>
-
-    <script>
-      document.body.addEventListener("htmx:afterOnLoad", function(evt) {
-        console.log("✅ HTMX response received");
-      });
-
-      document.body.addEventListener("htmx:responseError", function(evt) {
-        console.error("❌ Erro na resposta HTMX:", evt.detail);
-      });
-    </script>
   </body>
 </html>
 {{ end }}

@@ -1,19 +1,18 @@
 package handlers
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
-	"strconv"
 
 	"github.com/arthurskonrad/gotodolist/internal/db"
 )
 
 type Todo struct {
-	ID   int
-	Text string
-	Done bool
+	ID    string
+	Text  string
+	Done  bool
+	IsNew bool
 }
 
 type TodoViewData struct {
@@ -25,6 +24,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(
 		filepath.Join("internal", "templates", "layout.html"),
 		filepath.Join("internal", "templates", "index.html"),
+		filepath.Join("internal", "templates", "item.html"),
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,44 +38,31 @@ func Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddTodo(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("✅ AddTodo foi chamado")
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
 	text := r.FormValue("task")
-	fmt.Println("➡️ Texto recebido:", text)
-
 	if text == "" {
-		http.Error(w, "Texto da tarefa vazio", http.StatusBadRequest)
+		http.Error(w, "Texto inválido", http.StatusBadRequest)
 		return
 	}
 
-	db.Add(text)
-	fmt.Println("📦 Tarefas após add:", db.All())
+	newTodo := db.Add(text) // supondo que agora `Add` retorna o novo Todo
 
 	tmpl, err := template.ParseFiles(
-		filepath.Join("internal", "templates", "layout.html"), // obrigatório!
-		filepath.Join("internal", "templates", "index.html"),
+		filepath.Join("internal", "templates", "item.html"),
 	)
 	if err != nil {
-		http.Error(w, "Erro no template: "+err.Error(), http.StatusInternalServerError)
-		fmt.Println("❌ Erro no ParseFiles:", err)
+		http.Error(w, "Erro ao carregar template do item", http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println("👀 Dados enviados ao template:", splitTodos())
-
-	err = tmpl.ExecuteTemplate(w, "content", splitTodos())
+	err = tmpl.ExecuteTemplate(w, "item", newTodo)
 	if err != nil {
-		http.Error(w, "Erro ao renderizar template: "+err.Error(), http.StatusInternalServerError)
-		fmt.Println("❌ Erro ao renderizar template:", err)
-		return
+		http.Error(w, "Erro ao renderizar item", http.StatusInternalServerError)
 	}
-
-	fmt.Println("✅ Template renderizado com sucesso")
 }
 
 func DeleteTodo(w http.ResponseWriter, r *http.Request) {
@@ -85,27 +72,19 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idStr := r.FormValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil || idStr == "" {
+	if idStr == "" {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 
-	db.Delete(id)
+	db.Delete(idStr)
 
-	tmpl, err := template.ParseFiles(
-		filepath.Join("internal", "templates", "layout.html"),
-		filepath.Join("internal", "templates", "index.html"),
-	)
-	if err != nil {
-		http.Error(w, "Erro ao carregar templates", http.StatusInternalServerError)
+	if err := db.Save(); err != nil {
+		http.Error(w, "Erro ao salvar dados", http.StatusInternalServerError)
 		return
 	}
 
-	err = tmpl.ExecuteTemplate(w, "content", splitTodos())
-	if err != nil {
-		http.Error(w, "Erro ao renderizar template: "+err.Error(), http.StatusInternalServerError)
-	}
+	renderTodos(w)
 }
 
 func ToggleDone(w http.ResponseWriter, r *http.Request) {
@@ -115,17 +94,46 @@ func ToggleDone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idStr := r.FormValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil || idStr == "" {
+	if idStr == "" {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 
-	db.Toggle(id)
+	db.Toggle(idStr)
 
+	if err := db.Save(); err != nil {
+		http.Error(w, "Erro ao salvar dados", http.StatusInternalServerError)
+		return
+	}
+
+	renderTodos(w)
+}
+
+func splitTodos() TodoViewData {
+	all := db.All()
+
+	pending := make([]db.Todo, 0)
+	completed := make([]db.Todo, 0)
+
+	for _, t := range all {
+		if t.Done {
+			completed = append(completed, t)
+		} else {
+			pending = append(pending, t)
+		}
+	}
+
+	return TodoViewData{
+		Pending:   pending,
+		Completed: completed,
+	}
+}
+
+func renderTodos(w http.ResponseWriter) {
 	tmpl, err := template.ParseFiles(
 		filepath.Join("internal", "templates", "layout.html"),
 		filepath.Join("internal", "templates", "index.html"),
+		filepath.Join("internal", "templates", "item.html"),
 	)
 	if err != nil {
 		http.Error(w, "Erro ao carregar templates", http.StatusInternalServerError)
@@ -135,24 +143,5 @@ func ToggleDone(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.ExecuteTemplate(w, "content", splitTodos())
 	if err != nil {
 		http.Error(w, "Erro ao renderizar template", http.StatusInternalServerError)
-	}
-}
-
-func splitTodos() TodoViewData {
-	all := db.All()
-
-	var pending []db.Todo
-	var completed []db.Todo
-
-	for _, t := range all {
-		if t.Done {
-			completed = append(completed, t)
-		} else {
-			pending = append(pending, t)
-		}
-	}
-	return TodoViewData{
-		Pending:   pending,
-		Completed: completed,
 	}
 }

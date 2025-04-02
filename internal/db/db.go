@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"os"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type Todo struct {
-	ID   int    `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
+	ID    string `json:"id"`
+	Text  string `json:"text"`
+	Done  bool   `json:"done"`
+	IsNew bool   `json:"-"`
 }
 
 var (
 	todos  []Todo
-	nextID int
+	nextID string
 	mux    sync.Mutex
 )
 
@@ -29,7 +32,7 @@ func Load() error {
 	if err != nil {
 		if os.IsNotExist(err) {
 			todos = []Todo{}
-			nextID = 1
+			nextID = uuid.New().String()
 			return nil
 		}
 		return err
@@ -40,14 +43,7 @@ func Load() error {
 		return err
 	}
 
-	// Achar o maior ID pra manter sequência
-	max := 0
-	for _, t := range todos {
-		if t.ID > max {
-			max = t.ID
-		}
-	}
-	nextID = max + 1
+	nextID = uuid.New().String()
 
 	return nil
 }
@@ -58,49 +54,57 @@ func Save() error {
 
 	data, err := json.MarshalIndent(todos, "", "  ")
 	if err != nil {
+		fmt.Println("db.Save: erro ao indentar o json:", err)
 		return err
 	}
 
 	err = os.MkdirAll("data", 0755)
 	if err != nil {
+		fmt.Println("db.Save: erro ao criar pasta:", err)
 		return err
 	}
 
-	return os.WriteFile(filePath, data, 0644)
+	err = os.WriteFile(filePath, data, 0644)
+	if err != nil {
+		fmt.Println("db.Save: erro ao escrever no arquivo:", err)
+		return err
+	}
+
+	return nil
 }
 
 func All() []Todo {
 	mux.Lock()
 	defer mux.Unlock()
 
-	// retorna uma cópia para não ter race condition
+	if todos == nil {
+		return []Todo{}
+	}
+
 	c := make([]Todo, len(todos))
 	copy(c, todos)
 	return c
 }
 
-func Add(text string) {
-	mux.Lock()
-	defer mux.Unlock()
-
+func Add(text string) Todo {
 	todo := Todo{
-		ID:   nextID,
-		Text: text,
-		Done: false,
+		ID:    nextID,
+		Text:  text,
+		Done:  false,
+		IsNew: true,
 	}
 
+	mux.Lock()
 	todos = append(todos, todo)
-	nextID++
+	nextID = uuid.New().String()
+	mux.Unlock()
 
-	fmt.Println("✅ db.Add: tarefa adicionada:", todo)
+	_ = Save()
 
-	err := Save()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Erro ao salvar: %v\n", err)
-	}
+	return todo
 }
 
-func Toggle(id int) {
+func Toggle(id string) {
 	mux.Lock()
 	defer mux.Unlock()
 
@@ -110,19 +114,18 @@ func Toggle(id int) {
 			break
 		}
 	}
-	_ = Save()
 }
 
-func Delete(id int) {
+func Delete(id string) {
 	mux.Lock()
 	defer mux.Unlock()
 
-	newTodos := []Todo{}
+	filtered := make([]Todo, 0, len(todos))
 	for _, t := range todos {
 		if t.ID != id {
-			newTodos = append(newTodos, t)
+			filtered = append(filtered, t)
 		}
 	}
-	todos = newTodos
-	_ = Save()
+	todos = filtered
+	nextID = uuid.New().String()
 }

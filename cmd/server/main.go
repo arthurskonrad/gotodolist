@@ -4,19 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/arthurskonrad/gotodolist/internal/db" // se estiver usando persistência
+	"github.com/arthurskonrad/gotodolist/internal/db"
 	"github.com/arthurskonrad/gotodolist/internal/handlers"
 )
 
 func main() {
-	err := db.Load() // se estiver usando persistência
+	err := db.Load()
 	if err != nil {
 		log.Fatal("Erro ao carregar dados:", err)
 	}
 
 	mux := http.NewServeMux()
 
-	// ✅ Aqui você registra TODAS as rotas:
 	mux.HandleFunc("/", handlers.Home)
 	mux.HandleFunc("/add", handlers.AddTodo)
 	mux.HandleFunc("/delete", handlers.DeleteTodo)

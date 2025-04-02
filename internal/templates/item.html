@@ -1,0 +1,32 @@
+{{ define "item" }}
+<li
+  class="transition-all duration-300 ease-in-out {{ if .IsNew }}opacity-0 scale-95{{ end }}"
+  {{ if .IsNew }}hx-on:load="this.classList.remove('opacity-0', 'scale-95')"{{ end }}
+>
+  <span {{ if .Done }}class="line-through text-gray-500" {{ end }}>
+    {{ .Text }}
+  </span>
+  <div class="flex gap-2">
+    <button
+      hx-post="/toggle"
+      hx-vals='{"id": "{{ .ID }}"}'
+      hx-target="#todo-section"
+      hx-swap="outerHTML"
+      hx-on="htmx:beforeRequest: this.closest('li').classList.add('fade-out')"
+      class="text-sm bg-yellow-{{ if .Done }}500{{ else }}400{{ end }} text-white px-2 py-1 rounded hover:bg-yellow-600"
+    >
+      {{ if .Done }}Desfazer{{ else }}Concluir{{ end }}
+    </button>
+    <button
+      hx-post="/delete"
+      hx-vals='{"id": "{{ .ID }}"}'
+      hx-target="#todo-section"
+      hx-swap="outerHTML"
+      hx-on="htmx:beforeRequest: this.closest('li').classList.add('fade-out')"
+      class="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+    >
+      Remover
+    </button>
+  </div>
+</li>
+{{ end }}
