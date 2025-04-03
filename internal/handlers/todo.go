@@ -9,10 +9,9 @@ import (
 )
 
 type Todo struct {
-	ID    string
-	Text  string
-	Done  bool
-	IsNew bool
+	ID   string
+	Text string
+	Done bool
 }
 
 type TodoViewData struct {

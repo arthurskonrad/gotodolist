@@ -10,10 +10,9 @@ import (
 )
 
 type Todo struct {
-	ID    string `json:"id"`
-	Text  string `json:"text"`
-	Done  bool   `json:"done"`
-	IsNew bool   `json:"-"`
+	ID   string `json:"id"`
+	Text string `json:"text"`
+	Done bool   `json:"done"`
 }
 
 var (
@@ -88,10 +87,9 @@ func All() []Todo {
 
 func Add(text string) Todo {
 	todo := Todo{
-		ID:    nextID,
-		Text:  text,
-		Done:  false,
-		IsNew: true,
+		ID:   nextID,
+		Text: text,
+		Done: false,
 	}
 
 	mux.Lock()
