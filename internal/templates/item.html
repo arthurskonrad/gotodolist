@@ -1,6 +1,7 @@
 {{ define "item" }}
 <li
   class="transition-all duration-300 ease-in-out"
+  id="item-{{ .ID }}"
 >
   <span {{ if .Done }}class="line-through text-gray-500" {{ end }}>
     {{ .Text }}
@@ -18,7 +19,7 @@
     <button
       hx-post="/delete"
       hx-vals='{"id": "{{ .ID }}"}'
-      hx-target="#todo-section"
+      hx-target="#item-{{ .ID }}"
       hx-swap="outerHTML"
       class="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
     >

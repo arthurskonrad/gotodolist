@@ -49,7 +49,7 @@ func AddTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newTodo := db.Add(text) // supondo que agora `Add` retorna o novo Todo
+	newTodo := db.Add(text)
 
 	tmpl, err := template.ParseFiles(
 		filepath.Join("internal", "templates", "item.html"),
@@ -83,8 +83,6 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erro ao salvar dados", http.StatusInternalServerError)
 		return
 	}
-
-	renderTodos(w)
 }
 
 func ToggleDone(w http.ResponseWriter, r *http.Request) {
