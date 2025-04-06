@@ -1,6 +1,5 @@
 {{ define "content" }}
 <div id="todo-section" class="space-y-6">
-  <!-- Formulário -->
   <form
     hx-post="/add"
     hx-target="#todo-list-pending"
@@ -22,7 +21,6 @@
     </button>
   </form>
 
-  <!-- Tarefas pendentes -->
   <div>
     <h2 class="text-lg font-semibold mb-2">🔄 Pendentes</h2>
     <ul class="space-y-2" id="todo-list-pending">
@@ -32,7 +30,6 @@
     </ul>
   </div>
 
-  <!-- Tarefas concluídas -->
   <div>
     <h2 class="text-lg font-semibold mt-6 mb-2">✅ Concluídas</h2>
     <ul class="space-y-2" id="todo-list-completed">
