@@ -24,18 +24,14 @@
   <div>
     <h2 class="text-lg font-semibold mb-2">🔄 Pendentes</h2>
     <ul class="space-y-2" id="todo-list-pending">
-      {{ range .Pending }} {{ template "item" . }} {{ else }}
-      <li class="text-gray-400">Nenhuma tarefa pendente.</li>
-      {{ end }}
+      {{ range .Pending }} {{ template "item" . }} {{ end }}
     </ul>
   </div>
 
   <div>
     <h2 class="text-lg font-semibold mt-6 mb-2">✅ Concluídas</h2>
     <ul class="space-y-2" id="todo-list-completed">
-      {{ range .Completed }} {{ template "item" . }} {{ else }}
-      <li class="text-gray-400">Nenhuma tarefa concluída.</li>
-      {{ end }}
+      {{ range .Completed }} {{ template "item" . }} {{ end }}
     </ul>
   </div>
 </div>
